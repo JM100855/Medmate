@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Prescription Form</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #c1e4e8; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .diagnosis-form-container {
+            margin: 20px; 
+            width: 80%; 
+        }
+
+        .diagnosis-form {
+            background-color: #fff; 
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .diagnosis-form h1 {
+            text-align: center;
+            font-size: 24px; 
+        }
+
+        .form-group {
+            margin-bottom: 20px; 
+            padding: 0 20px; 
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .center-button {
+            text-align: center;
+        }
+
+        .center-button button {
+            background-color: #007BFF; 
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .center-button button:hover {
+            background-color: #0056b3; 
+        }
+
+        .doctor-image {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .doctor-image img {
+            width: 150px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagnosis-form-container">
+        <div class="diagnosis-form">
+            <div class="doctor-image">
+                <img src="https://thumbs.dreamstime.com/z/medical-prescription-stethoscope-19722268.jpg?w=576" alt="Doctor's Image">
+            </div>
+            <h1>Doctor Prescription Form</h1>
+            <form id="upload-form">
+                <div class="form-group">
+                    <label for="report-name">Report Name:</label>
+                    <input type="text" id="report-name" name="report-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="patient-id">Patient Id:</label>
+                    <input type="text" id="patient-id" name="patient-id" required>
+                </div>
+                <div class="form-group">
+                    <label for="diagnosis">Diagnosis:</label>
+                    <textarea id="diagnosis" name="diagnosis" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="pdf-file">Upload PDF Report:</label>
+                    <input type="file" id="pdf-file" name="pdf-file" accept=".pdf" required>
+                </div>
+                <div class="center-button">
+                    <button type="button" id="form-submit-btn">Upload Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
+
+    <script>
+        const uploadForm = document.getElementById("form-submit-btn");
+
+        uploadForm.addEventListener("click", async (event) => {
+            event.preventDefault();
+
+            const session = localStorage.getItem('doctor');
+
+            if (session) {
+                const user = JSON.parse(session);
+
+                const formData = new FormData();
+
+                const diagnosis = document.getElementById('diagnosis').value;
+                const fileInput = document.getElementById('pdf-file');
+                const patientId = document.getElementById('patient-id').value;
+                const name = document.getElementById('report-name').value;
+
+                const payload = {
+                    diagnosis,
+                    doctorId: user?.id,
+                    doctorName: user?.name,
+                    hospitalName: user?.hospital
+                };
+                console.log(payload)
+
+                formData.append('name', name);
+                formData.append('patientId', patientId);
+                formData.append('metadata', JSON.stringify(payload));
+
+                if (fileInput.files[0]) {
+                    formData.append('file', fileInput.files[0], name);
+                    console.log('file', fileInput.files[0], name);
+                }
+                const apiUrl = "http://15.207.107.123:5001/record/new";
+
+                try {
+            event.preventDefault();
+
+                    const response = await axios.post(apiUrl, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                        },
+                    });
+                    console.log(response)
+                    if (response.status === 200) {
+                        alert("PDF report uploaded successfully!");
+                        window.location.href = 'doctor.recordview.html';
+                    } else {
+                        alert("Failed to upload the PDF report.");
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert("An error occurred while uploading the PDF report.");
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        iframe {
+            width: 80%;
+            max-width: 800px;
+            height: 80vh;
+        }
+
+        #form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #doctor-id, #doctor-address {
+            margin: 10px 0;
+        }
+
+        #submit-button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .share-list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .share-list > div {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+
+        }
+    </style>
+</head>
+<body>
+<iframe src="" id="pdf-viewer" frameborder="0"></iframe>
+<h1>Share Report</h1>
+<div id="form-container">
+    <input type="text" id="doctor-id" placeholder="Doctor ID">
+    <input type="text" id="doctor-address" placeholder="Doctor Address">
+    <button type="submit" class="button" id="share-report">Share Report</button>
+</div>
+<div id="share-list" class="share-list">
+
+</div>
+<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const shareReport = document.getElementById('share-report')
+    const revokeBtn = document.querySelector('.revoke-btn')
+    const allowedDoctors = [];
+
+    function loadPdf() {
+        const pdfViewer = document.getElementById("pdf-viewer");
+        const pdfUrl = urlParams.get("url");
+
+        if (pdfUrl) {
+            pdfViewer.src = pdfUrl;
+        } else {
+            alert("No PDF URL provided.");
+        }
+    }
+
+    shareReport.addEventListener("click", async () => {
+        const doctorId = document.getElementById("doctor-id").value;
+        const doctorAddress = document.getElementById("doctor-address").value;
+        const recordAddress = urlParams.get("record");
+        const recordID = urlParams.get("record-id");
+
+        const ABI = [
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "doctor",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "enabled",
+                        "type": "bool"
+                    }
+                ],
+                "name": "setDoctorAccess",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ]
+
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum, "any")
+        await provider.send("eth_requestAccounts", []);
+
+        const contract = new ethers.Contract(recordAddress, ABI, provider.getSigner())
+
+        contract.setDoctorAccess(doctorAddress, true)
+            .then(async (tx) => {
+                console.log(tx)
+
+                await axios({
+                    method: "POST",
+                    url: `http://15.207.107.123:5001/record/access`,
+                    data: {
+                        doctorId: doctorId,
+                        recordId: recordID
+                    }
+                })
+                alert("Report shared successfully.")
+                doctorId.value = ""
+                doctorAddress.value = ""
+            })
+            .catch((err) => {
+                console.log(err)
+                alert("Report sharing failed.")
+            })
+    })
+
+if(revokeBtn) {
+    revokeBtn.addEventListener('click', async (e) => {
+        e.preventDefault()
+        const doctorId = e.target.id
+        const recordAddress = urlParams.get("record");
+        const recordID = urlParams.get("record-id");
+        const d = allowedDoctors.find((d) => d.doctor.id === doctorId)
+
+        const ABI = [
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "doctor",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "enabled",
+                        "type": "bool"
+                    }
+                ],
+                "name": "setDoctorAccess",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ]
+
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum, "any")
+        await provider.send("eth_requestAccounts", []);
+
+        const contract = new ethers.Contract(recordAddress, ABI, provider.getSigner())
+
+        contract.setDoctorAccess(d.doctor.address, true)
+            .then(async (tx) => {
+                console.log(tx)
+
+                await axios({
+                    method: "POST",
+                    url: `http://15.207.107.123:5001/record/access?revoke=true`,
+                    data: {
+                        doctorId: doctorId,
+                        recordId: recordID
+                    }
+                })
+                alert("Access revoked successfully.")
+            })
+            .catch((err) => {
+                console.log(err)
+                alert("Access revoke failed.")
+            })
+
+    })
+
+}
+    async function getShareList() {
+
+        const vaultAddress = "0x31Ef6675B147bFCa2ab7dF6462547110c98F0B00"
+        const encryptedHash = urlParams.get("hash")
+        const ABI = [{
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "patientUid",
+                    "type": "string"
+                }
+            ],
+            "name": "getRecordsByPatientId",
+            "outputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "uint256",
+                            "name": "id",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "recordAddress",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "metadata",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "name",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "ipfs",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "patientUid",
+                            "type": "string"
+                        }
+                    ],
+                    "internalType": "struct EHRVault.Record[]",
+                    "name": "",
+                    "type": "tuple[]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }]
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum, "any")
+        await provider.send("eth_requestAccounts", []);
+        const contract = new ethers.Contract(vaultAddress, ABI, provider)
+
+        const session = localStorage.getItem('user')
+        console.log(session)
+
+        const user = JSON.parse(session)
+
+        contract.getRecordsByPatientId(user.id)
+            .then(async (records) => {
+                if(records[0][1].includes('0x0000000000')) {
+                    return
+                }
+
+                const record = records.find((r) => r[4] === encryptedHash)
+
+                const shareList = document.getElementById('share-list')
+
+                if(record) {
+                    const {data} = await axios.get(`http://15.207.107.123:5001/record/get-allowed-doctors/${record[0].toString()}`)
+                    if(data?.data?.length > 0) {
+                        allowedDoctors.push(...data.data)
+                         data.data.map((report, i) => {
+                             const shareItemMarkup = `
+                                <div>
+                                    <h5>${report?.doctor?.name} - ${report?.doctor?.hospital} </h5>
+                                    <button id="${report?.doctor?.id}" class="revoke-btn">Revoke</button>
+                                </div>
+                            `
+
+                             shareList.insertAdjacentHTML('beforeend', shareItemMarkup)
+                         })
+                    }
+                }
+
+            })
+
+    }
+    window.onload = () => {
+        loadPdf()
+        getShareList()
+    };
+</script>
+</body>
+</html>

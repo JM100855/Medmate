@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #8ac6cf;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .button img {
+            width: 200px; 
+            height: auto;
+        }
+
+        .button:hover {
+            transform: scale(1.05);
+        }
+
+        p {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Doctor Dashboard</h1>
+        <div class="button-container">
+            
+            <button class="button" onclick="redirectTo('doctor-login')">
+                <img src="https://img.freepik.com/premium-vector/flat-doctor-illustration-design-vector_558026-669.jpg" alt="Doctor Login">
+                <p>Doctor Login</p>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function redirectTo(page) {
+            if (page === 'doctor-login') {
+                window.location.href = 'doctor-login.html';
+            }
+        }
+    </script>
+</body>
+</html>

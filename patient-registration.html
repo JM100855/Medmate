@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #7bdce7;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+         
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .image-container {
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            width: 200px;
+    
+            height: auto;
+        }
+
+        .form-container {
+            text-align: left;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+        }
+
+        .button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Patient Registration</h1>
+    <div class="image-container">
+        <img src="https://img.pikbest.com/png-images/qiantu/cute-cartoon-little-girl-medical-patient-in-hospital-gown_2558435.png!sw800" alt="Patient Image">
+    </div>
+    <form id="registration-form" class="form-container">
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit" class="button">Register</button>
+    </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
+<script>
+    const registrationForm = document.getElementById("registration-form");
+    const name = document.getElementById("name");
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const supabaseUrl = 'https://tlffengiwokazvthjfeh.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZmZlbmdpd29rYXp2dGhqZmVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTMzNzUyNzksImV4cCI6MjAwODk1MTI3OX0.B7tp3V4y4Csjzy47H15XgiNdFflPch-10QOjvDD6MNs';
+    const sb = supabase.createClient(supabaseUrl, supabaseKey);
+    registrationForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        sb.auth.signUp({
+            email: email.value,
+            password: password.value
+        }).then(async (res) => {
+            const {
+                data
+            } = res;
+            const headers = {
+                'x-access-token': data.session?.access_token,
+                'x-refresh-token': data.session?.refresh_token,
+            }
+            const response = await axios({
+                url: 'http://15.207.107.123:5001/account/new',
+                method: "POST",
+                headers,
+                data: {
+                    password: password.value,
+                    name: name.value
+                }
+            })
+            localStorage.setItem("wallet", JSON.stringify({
+                encryptedJSON: response?.data?.encryptedWalletJSON,
+                password: password.value
+            }))
+            localStorage.setItem('user', JSON.stringify({
+                email: email.value,
+                name: name.value,
+                wallet: response?.data?.wallet,
+                id: response.data?.userId
+            }))
+            window.location.href = 'patient.recordview.html';
+        }).catch(err => {
+            console.log(err);
+        })
+    });
+</script>
+</body>
+</html>

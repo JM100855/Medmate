@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Records</title>
+    <style>
+ 
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #09525c;
+            color: #fff;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .patient-card {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .patient-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .patient-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .patient-id {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .record {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .record-button {
+            background-color: #133034;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Patient Records</h1>
+</header>
+<div class="container">
+ 
+    <div class="patient-card">
+        <img src="https://img.pikbest.com/png-images/qiantu/cute-cartoon-little-girl-medical-patient-in-hospital-gown_2558435.png!sw800" alt="Patient Photo" class="patient-photo">
+        <div class="patient-name">Patient Name: <span id="patient-name"></span>
+        </div>
+        <div class="patient-id">Patient ID: <span id="patient-id"></span>
+        </div>
+        <section id="records-collection"></section>
+    </div>
+</div>
+<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
+<script>
+ 
+    const patientName = document.getElementById('patient-name')
+    const patientID = document.getElementById('patient-id')
+    const recordsCollection = document.getElementById('records-collection')
+    const session = localStorage.getItem('user')
+    if (session) {
+        const user = JSON.parse(session)
+        patientName.innerText = user.name
+        patientID.innerText = user.id
+        const provider = new ethers.providers.Web3Provider(window.ethereum, 'any')
+        console.log(provider)
+        provider.send("eth_requestAccounts", [])
+            .then(() => {
+                const EHRABI = [{
+                    "inputs": [{
+                        "internalType": "string",
+                        "name": "patientUid",
+                        "type": "string"
+                    }],
+                    "name": "getRecordsByPatientId",
+                    "outputs": [{
+                        "components": [{
+                            "internalType": "uint256",
+                            "name": "id",
+                            "type": "uint256"
+                        }, {
+                            "internalType": "address",
+                            "name": "recordAddress",
+                            "type": "address"
+                        }, {
+                            "internalType": "string",
+                            "name": "metadata",
+                            "type": "string"
+                        }, {
+                            "internalType": "string",
+                            "name": "name",
+                            "type": "string"
+                        }, {
+                            "internalType": "string",
+                            "name": "ipfs",
+                            "type": "string"
+                        }, {
+                            "internalType": "string",
+                            "name": "patientUid",
+                            "type": "string"
+                        }],
+                        "internalType": "struct EHRVault.Record[]",
+                        "name": "",
+                        "type": "tuple[]"
+                    }],
+                    "stateMutability": "view",
+                    "type": "function"
+                }]
+                const vaultContract = new ethers.Contract('0x31Ef6675B147bFCa2ab7dF6462547110c98F0B00', EHRABI, provider);
+                vaultContract.getRecordsByPatientId(user.id).then((records) => {
+                    for (const Record of records) {
+                        if (Record[1] === '0x0000000000000000000000000000000000000000') continue
+                        const record = {
+                            id: Record[0].toString(),
+                            recordAddress: Record[1],
+                            metadata: JSON.parse(Record[2]),
+                            name: Record[3],
+                            ipfs: Record[4],
+                            patientUid: Record[5].toString(),
+                        }
+
+                        axios({
+                            url: `http://15.207.107.123:5001/record/${encodeURIComponent(record.ipfs)}/?viewerId=${user.id}&isDoctor=false`,
+                            method: "GET",
+                        }).then((decryptedHash) => {
+                            console.log(decryptedHash)
+                            const ipfsURL = `https://gateway.pinata.cloud/ipfs/${decryptedHash?.data?.ipfs}`
+                            console.log(ipfsURL)
+                            const googleDocsURL = `https://docs.google.com/gview?embedded=true&url=${ipfsURL}`
+
+                            const recordElement = `
+						<article class="record">
+							<h2>${record.name}</h2>
+							<p>Diagnosis: ${record.metadata?.diagnosis}</p>
+							<p>Hospital: ${record.metadata?.hospitalName}</p>
+							<p>Doctor: ${record.metadata?.doctorName}</p>
+							<p>DoctorID: ${record.metadata?.doctorId}</p>
+							<button>
+								<a href="finalyear%20project/patient-recordview.html?url=${ipfsURL}&record=${record.recordAddress}&record-id=${record.id}&hash=${record.ipfs}" target="_blank" class="record-button">View</a>
+							</button>
+							<button>
+								<a href="/patient-recordview.html?url=${ipfsURL}&record=${record.recordAddress}&record-id=${record.id}&hash=${record.ipfs}" target="_blank" class="record-button" download="">Download</a>
+							</button>
+						</article>
+                        `
+                            recordsCollection.innerHTML += recordElement
+                        })
+                    }
+                }).catch(console.log)
+            })
+
+    }
+
+</script>
+</body>
+</html>

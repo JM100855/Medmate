@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #8ac6cf;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .button img {
+            width: 200px; 
+            height: auto;
+        }
+
+        .button:hover {
+            transform: scale(1.05);
+        }
+
+        p {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Patient Dashboard</h1>
+        <div class="button-container">
+            <button class="button" onclick="redirectTo('patient-register')">
+                <img src="https://png.pngitem.com/pimgs/s/228-2282704_clip-art-cartoon-picture-of-doctor-and-patient.png" alt="New patient - Register">
+                <p>New Patient? Register here</p>
+            </button>
+            <button class="button" onclick="redirectTo('patient-login')">
+                <img src="https://simg.nicepng.com/png/small/100-1007612_open-patient-and-doctor-animated.png" alt="patient Login">
+                <p>Patient Login</p>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function redirectTo(page) {
+            if (page === 'patient-register') {
+                window.location.href = 'patient-registration.html';
+            } else if (page === 'patient-login') {
+                window.location.href = 'patient-login.html';
+            }
+        }
+    </script>
+</body>
+</html>

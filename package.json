@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "@pinata/sdk": "^2.1.0",
+    "@supabase/supabase-js": "^2.33.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.7.1",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "node-forge": "^1.3.1",
+    "node-rsa": "^1.1.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.14",
+    "@types/express": "^4.17.17",
+    "@types/multer": "^1.4.7",
+    "@types/node": "^20.6.0",
+    "@types/node-forge": "^1.3.8",
+    "@types/node-rsa": "^1.1.3",
+    "@types/uuid": "^9.0.3",
+    "concurrently": "^8.2.1",
+    "nodemon": "^3.0.1",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "dev": "concurrently \"npx tsc --watch\" \"npx nodemon -q dist/index.js\""
+  }
+}

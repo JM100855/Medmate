@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #99dfdf;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .image-container {
+            margin-bottom: 20px;
+        }
+        .image-container img {
+            width: 200px;
+            height: auto;
+        }
+        .button {
+            background-color: #16223a;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Patient Login</h1>
+    <div class="image-container">
+        <img src="https://previews.123rf.com/images/jemastock/jemastock1804/jemastock180401253/98831273-flat-art-of-man-with-crutches-cartoon-on-white-backdrop-illustration.jpg" alt="patient Image">
+    </div>
+    <form id="login-form">
+        <label>
+            <input type="email" placeholder="email" required id="email">
+        </label>
+        <br>
+        <br>
+        <label>
+            <input type="password" placeholder="Password" required id="password">
+        </label>
+        <br>
+        <br>
+        <button type="submit" class="button">Login</button>
+    </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script defer>
+    const loginForm = document.getElementById("login-form");
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const supabaseUrl = 'https://tlffengiwokazvthjfeh.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZmZlbmdpd29rYXp2dGhqZmVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTMzNzUyNzksImV4cCI6MjAwODk1MTI3OX0.B7tp3V4y4Csjzy47H15XgiNdFflPch-10QOjvDD6MNs';
+    const sb = supabase.createClient(supabaseUrl, supabaseKey);
+
+    loginForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        sb.auth.signInWithPassword({
+            email: email.value,
+            password: password.value
+        }).then(async (res) => {
+            const { data } = res;
+            const {
+                data: user
+            } = await sb.from('Users').select('*').eq('email', data.user.email).single()
+            const {
+                data: wallet
+            } = await sb.from('Wallets').select('*').eq('user_id', user.id).single()
+            localStorage.setItem("wallet", JSON.stringify({
+                encryptedJSON: wallet.encryptedJSON,
+                password: password.value
+            }))
+            localStorage.setItem('user', JSON.stringify({
+                email: email.value,
+                name: user?.name,
+                wallet: user?.wallet,
+                id: user?.id
+            }))
+            window.location.href = 'patient.recordview.html';
+        }).catch(err => {
+            console.log(err);
+        })
+    });
+</script>
+</body>
+</html>

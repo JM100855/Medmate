@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Login</title>
+    <style>
+       
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #99dfdf;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 400px; 
+            width: 90%; 
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .image-container {
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            width: 200px; /* Adjust the image size as needed */
+            height: auto;
+        }
+
+        .button {
+            background-color: #16223a;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Doctor Login</h1>
+        <div class="image-container">
+            <img src="https://images.assetsdelivery.com/compings_v2/indomercy/indomercy1501/indomercy150100019.jpg" alt="Doctor Image">
+        </div>
+        <form id="login-form">
+            <input type="text" placeholder="Username" required id="doctor-id"><br><br>
+            <input type="password" placeholder="Password" required id="doctor-password"><br><br>
+            <button type="submit" class="button">Login</button>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
+
+    <script>
+        const loginForm = document.getElementById("login-form");
+
+        loginForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const doctorId = document.getElementById("doctor-id").value;
+            const doctorPassword = document.getElementById('doctor-password').value;
+
+            const {data} = await axios({
+                method: "POST",
+                url: "http://15.207.107.123:5001/doctor/login",
+                data: {
+                    id: doctorId,
+                    password: doctorPassword
+                }
+            })
+
+            localStorage.setItem('doctor', JSON.stringify({
+                id: data?.doctor?.id,
+                name: data?.doctor?.name,
+                hospital: data?.doctor?.hospital,
+                wallet: data?.doctor?.address,
+            }))
+
+            window.location.href = 'doctor.recordview.html';
+        });
+    </script>
+</body>
+</html>

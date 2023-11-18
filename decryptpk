@@ -1,0 +1,36 @@
+const ethers = require('ethers');
+
+const json = {"address":"a04ce30223b48363f79a0175b7d20297eef2b608","id":"6e4b2240-bcb6-4917-8039-12284387ac77","version":3,"Crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"b5f089804fe75ea4163799148d0621d3"},"ciphertext":"54ad0bb8d36958a4c34514f1dad233dccc10b12e0aa2c226601922c116420a3c","kdf":"scrypt","kdfparams":{"salt":"e4f459376944055efa07b7cd83c9581dd3573d7e6bdde41a1e7936438c2d68f8","n":131072,"dklen":32,"p":1,"r":8},"mac":"2c38297793605823ce65413263fba2b02450a8da31db5e2050b5c4996f9a348f"},"x-ethers":{"client":"ethers/6.7.1","gethFilename":"UTC--2023-10-25T17-39-35.0Z--a04ce30223b48363f79a0175b7d20297eef2b608","path":"m/44'/60'/0'/0/0","locale":"en","mnemonicCounter":"bb685af7303077a54735868e77eeaeff","mnemonicCiphertext":"e0e0d974fcbb82295ca9e45bfa9673ec","version":"0.1"}}.stringify({
+    "address":"353f462815b07794a65d1e8e72c45e0295c79625",
+    "id":"fc48bd09-f681-40e9-9225-5dc59af016fd",
+    "version":3,
+    "Crypto":{
+        "cipher":"aes-128-ctr",
+        "cipherparams":{
+            "iv":"8fa8aa10b6048bb944157c36adec0672"
+        },
+        "ciphertext":"1558377b3b48651b473fe81ea930cf34d18b2c545414c5aa71f43baa8c8bf1f5",
+        "kdf":"scrypt",
+        "kdfparams":{
+            "salt":"5ddc780f94c5000854c95da43e3ebc567cb0c942fee4e5a95c33d94a1a280919",
+            "n":131072,
+            "dklen":32,
+            "p":1,
+            "r":8
+        },
+        "mac":"191cb2c2503925f2473ccc3595c3423f3a68d4a6d1915b7e071e5b1e009a6bb2"
+    },
+    "x-ethers":{
+        "client":"ethers/6.8.0",
+        "gethFilename":"UTC--2023-10-24T11-35-04.0Z--353f462815b07794a65d1e8e72c45e0295c79625",
+        "path":"m/44'/60'/0'/0/0",
+        "locale":"en",
+        "mnemonicCounter":"9036672100960e13a2475194d19f853c",
+        "mnemonicCiphertext":"d2eda7e163e77d373a8a5d366e5efe0d",
+        "version":"0.1"
+    }
+})
+
+ethers.Wallet.fromEncryptedJson(json, "kp18@test.com").then((wallet: any) => {
+    console.log(wallet.privateKey)
+})

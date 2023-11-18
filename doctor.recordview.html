@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor's dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #09525c;
+            color: #fff;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .patient-card {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .patient-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .patient-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .patient-id {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .record {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .record-button {
+            background-color: #133034;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Doctor's dashboard</h1>
+</header>
+<div class="container">
+    <!-- Patient Card -->
+    <div class="patient-card">
+        <img src="https://img.pikbest.com/png-images/qiantu/cute-cartoon-little-girl-medical-patient-in-hospital-gown_2558435.png!sw800" alt="Patient Photo" class="patient-photo">
+        <div class="doctor-name">Doctor Name: <span id="doctor-name"></span>
+        </div>
+        <div class="doctor-id">Doctor ID: <span id="doctor-id"></span>
+        </div>
+        <div style="margin: 1rem 0">
+            <a href="forms.html" target="_blank">
+                <button>
+                    Add new Record +
+                </button>
+            </a>
+        </div>
+        <section id="records-collection"></section>
+    </div>
+</div>
+<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
+<script>
+    const getSharedRecords = async () => {
+        const patientName = document.getElementById('doctor-name')
+        const patientID = document.getElementById('doctor-id')
+        const session = localStorage.getItem('doctor')
+
+        if(session) {
+            const user = JSON.parse(session)
+            patientName.innerText = user.name
+            patientID.innerText = user.id
+
+            const provider = new ethers.providers.Web3Provider(window.ethereum, 'any')
+
+            const EHRABI = [{
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getRecord",
+                "outputs": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint256",
+                                "name": "id",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "address",
+                                "name": "recordAddress",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "metadata",
+                                "type": "string"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "name",
+                                "type": "string"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "ipfs",
+                                "type": "string"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "patientUid",
+                                "type": "string"
+                            }
+                        ],
+                        "internalType": "struct EHRVault.Record",
+                        "name": "",
+                        "type": "tuple"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }]
+
+            const vaultContract = new ethers.Contract('0x31Ef6675B147bFCa2ab7dF6462547110c98F0B00', EHRABI, provider);
+            const { data } = await axios({
+                url: `http://15.207.107.123:5001/record/access/${user?.id}`,
+                method: "GET",
+            })
+
+            const recordsCollection = document.getElementById('records-collection')
+
+            for (const record of data?.data) {
+                const Record = await vaultContract.getRecord(record?.address)
+
+                const r = {
+                    id: Record[0].toString(),
+                    recordAddress: Record[1],
+                    metadata:Record[2],
+                    name: Record[3],
+                    ipfs: Record[4],
+                    patientUid: Record[5].toString(),
+                }
+
+                const decryptedHash = await axios({
+                    url: `http://15.207.107.123:5001/record/${encodeURIComponent(r.ipfs)}?viewerId=${user.id}&isDoctor=true&patientId=${r.patientUid}`,
+                    method: "GET",
+                })
+
+                const ipfsURL = `https://gateway.pinata.cloud/ipfs/${decryptedHash?.data?.ipfs}`
+
+                const recordElement = `
+						<article class="record">
+							<h2>${r.name}</h2>
+							<p>Diagnosis: ${r.metadata?.diagnosis}</p>
+							<p>Hospital: ${r.metadata?.hospitalName}</p>
+							<p>Doctor: ${r.metadata?.doctorName}</p>
+							<p>DoctorID: ${r.metadata?.doctorId}</p>
+							<button>
+								<a href="/doctor-record-view.html?url=${ipfsURL}&record=${r.recordAddress}&record-id=${r.id}&hash=${r.ipfs}" target="_blank" class="record-button">View</a>
+							</button>
+							<button>
+								<a href="/doctor-record-view.html?url=${ipfsURL}&record=${r.recordAddress}&record-id=${r.id}&hash=${r.ipfs}" target="_blank" class="record-button" download="">Download</a>
+							</button>
+						</article>
+                        `
+
+                recordsCollection.innerHTML += recordElement
+            }
+        }
+
+    }
+
+    window.onload = getSharedRecords()
+
+</script>
+</body>
+</html>

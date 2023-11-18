@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        iframe {
+            width: 80%;
+            max-width: 800px;
+            height: 80vh;
+        }
+        .share-list > div {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+
+        }
+    </style>
+</head>
+<body>
+<iframe src="" id="pdf-viewer" frameborder="0"></iframe>
+
+</div>
+<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    function loadPdf() {
+        const pdfViewer = document.getElementById("pdf-viewer");
+        const pdfUrl = urlParams.get("url");
+
+        if (pdfUrl) {
+            pdfViewer.src = pdfUrl;
+        } else {
+            alert("No PDF URL provided.");
+        }
+    }
+    window.onload = () => {
+        loadPdf()
+    };
+</script>
+</body>
+</html>
